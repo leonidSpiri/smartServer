@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  api:
+    container_name: api
+    build: .
+    ports:
+      - "9888:8080"
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+    networks:
+      - internal_net
+
+  db:
+    container_name: logger_db
+    image: postgres:15.2-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file: .env
+    volumes:
+      - db_logger_vol:/var/lib/postgresql/data/
+      - ./dump:/docker-entrypoint-initdb.d
+    networks:
+      - internal_net
+
+volumes:
+  db_logger_vol: { }
+
+networks:
+  internal_net:
+    driver: bridge
