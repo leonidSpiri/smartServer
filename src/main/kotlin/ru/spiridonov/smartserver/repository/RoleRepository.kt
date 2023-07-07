@@ -1,7 +1,7 @@
 package ru.spiridonov.smartserver.repository
 
-import com.example.demo.models.Role
-import com.example.demo.models.Roles
+import ru.spiridonov.smartserver.model.Role
+import ru.spiridonov.smartserver.model.enums.Roles
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

@@ -1,6 +1,6 @@
 package ru.spiridonov.smartserver.repository
 
-import com.example.demo.models.RefreshToken
+import ru.spiridonov.smartserver.model.RefreshToken
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Repository

@@ -1,4 +1,4 @@
-package com.example.demo.models
+package ru.spiridonov.smartserver.model
 
 import jakarta.persistence.*
 import ru.spiridonov.smartserver.model.User

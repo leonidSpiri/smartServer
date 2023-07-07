@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank
 import java.time.OffsetDateTime
 
 @Entity
-@Table(name = "mobile_requirements")
-data class Mobile(
+@Table(name = "rasp_state")
+data class RaspState(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -14,10 +14,6 @@ data class Mobile(
     @NotBlank
     val dateTime: OffsetDateTime,
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    val user: User,
-
     @NotBlank
-    val newRequiredState: String
+    val raspState: String
 )

@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank
 import java.time.OffsetDateTime
 
 @Entity
-@Table(name = "mobile_requirements")
-data class Mobile(
+@Table(name = "security")
+data class Security(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -19,5 +19,5 @@ data class Mobile(
     val user: User,
 
     @NotBlank
-    val newRequiredState: String
+    val isSecurityTurnOn: Boolean = true
 )
