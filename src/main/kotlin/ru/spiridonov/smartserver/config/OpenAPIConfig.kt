@@ -14,6 +14,7 @@ class OpenAPIConfig {
     @Value("\${ru.spiridonov.openapi.dev-url}")
     private val devUrl: String? = null
 
+    //http://localhost:8080/swagger-ui/index.html
     @Bean
     fun myOpenAPI(): OpenAPI? {
         val devServer = Server()
