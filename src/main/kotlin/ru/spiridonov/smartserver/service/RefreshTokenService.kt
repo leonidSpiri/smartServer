@@ -1,13 +1,15 @@
 package ru.spiridonov.smartserver.service
 
-import ru.spiridonov.smartserver.model.RefreshToken
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ru.spiridonov.smartserver.exception.TokenRefreshException
+import ru.spiridonov.smartserver.model.RefreshToken
 import ru.spiridonov.smartserver.repository.RefreshTokenRepository
 import ru.spiridonov.smartserver.repository.UserRepository
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneOffset
 import java.util.*
 
 @Service
@@ -23,14 +25,14 @@ class RefreshTokenService(
     fun createRefreshToken(userId: Long): RefreshToken {
         val refreshToken = RefreshToken(
             user = userRepository.findById(userId).get(),
-            expiryDate = Instant.now().plusMillis(refreshTokenDurationMs),
+            expiryDate = Instant.now(Clock.system(ZoneOffset.of("+03:00"))).plusMillis(refreshTokenDurationMs),
             token = UUID.randomUUID().toString()
         )
         return refreshTokenRepository.save(refreshToken)
     }
 
     fun verifyExpiration(refreshToken: RefreshToken) =
-        if (refreshToken.expiryDate < Instant.now()) {
+        if (refreshToken.expiryDate < Instant.now(Clock.system(ZoneOffset.of("+03:00")))) {
             refreshTokenRepository.delete(refreshToken)
             throw TokenRefreshException(
                 refreshToken.token,

@@ -6,4 +6,6 @@ import ru.spiridonov.smartserver.model.enums.DevTypes
 
 interface RaspDevicesRepository : JpaRepository<RaspDevices, Long> {
     fun findByDevType(devType: DevTypes): RaspDevices?
+
+    fun findByPinId(pinId: Int): RaspDevices?
 }

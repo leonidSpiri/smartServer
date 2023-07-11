@@ -6,13 +6,14 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import ru.spiridonov.smartserver.model.Mobile
 import ru.spiridonov.smartserver.model.enums.DevTypes
-import ru.spiridonov.smartserver.payload.request.MobileRequest
+import ru.spiridonov.smartserver.payload.request.StateRequest
 import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.MobileRepository
 import ru.spiridonov.smartserver.repository.RaspDevicesRepository
 import ru.spiridonov.smartserver.repository.UserRepository
 import ru.spiridonov.smartserver.service.UserDetailsImpl
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
@@ -24,7 +25,7 @@ class MobileController(
 ) {
 
     @PostMapping
-    fun mobileRequest(@Valid @RequestBody request: MobileRequest): ResponseEntity<*> {
+    fun mobileRequest(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
         val userDetails = SecurityContextHolder.getContext().authentication.principal as UserDetailsImpl
         val user = userRepository.findByEmail(userDetails.getEmail())
             ?: return ResponseEntity.badRequest().body(MessageResponse(message = "User not found"))
@@ -43,10 +44,12 @@ class MobileController(
                 }
             }
         }
-
+        if (statePairs.isEmpty())
+            return ResponseEntity.badRequest()
+                .body(MessageResponse(message = "No devices found"))
         val savedRequest = mobileRepository.save(
             Mobile(
-                dateTime = OffsetDateTime.now(),
+                dateTime = OffsetDateTime.now(ZoneOffset.of("+03:00")),
                 user = user,
                 newRequiredState = statePairs.toMap().toString().replace("{", "").replace("}", "").replace("=", ":")
             )
