@@ -60,13 +60,23 @@ class WebSecurityConfig(
             }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/api/mobile/**").fullyAuthenticated()
-                    .requestMatchers("/api/rasp_dev/**").fullyAuthenticated()
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/rasp_state/**").permitAll()
+                    //for raspberry
+                    .requestMatchers("/api/rasp_state").permitAll()
+                    .requestMatchers("/api/mobile/last_request").permitAll()
+                    .requestMatchers("/api/security/get").permitAll()
+                    .requestMatchers("/api/security/violated").permitAll()
+
+                    //for all others cases
                     .requestMatchers("/error").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/swagger-ui/**").permitAll() //TODO set to authenticated only
                     .requestMatchers("/v3/api-docs/**").permitAll() //TODO set to authenticated only
+
+
+                    .requestMatchers("/api/security/**").fullyAuthenticated()
+                    .requestMatchers("/api/mobile/**").fullyAuthenticated()
+                    .requestMatchers("/api/rasp_dev/**").fullyAuthenticated()
+                    .requestMatchers("/api/rasp_state/**").fullyAuthenticated()
                     .anyRequest().fullyAuthenticated()
             }
 

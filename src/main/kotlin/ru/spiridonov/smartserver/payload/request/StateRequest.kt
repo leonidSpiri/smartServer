@@ -4,5 +4,7 @@ import jakarta.validation.constraints.NotBlank
 
 data class StateRequest(
     @NotBlank
-    val newRequiredState: String
+    val newRequiredState: String,
+
+    val isSecurityViolated:Boolean = false
 )

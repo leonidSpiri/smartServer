@@ -9,7 +9,6 @@ import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.RaspDevicesRepository
 import ru.spiridonov.smartserver.repository.RaspStateRepository
 import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
@@ -20,7 +19,7 @@ class RaspStateController(
     val raspStateRepository: RaspStateRepository
 ) {
     @PostMapping
-    fun mobileRequest(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
+    fun raspResponse(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
        val statePairs = mutableListOf<Pair<String, String>>()
         request.newRequiredState.split(",").forEach { state ->
             val list = state.split(":").map { it.trim() }
@@ -36,7 +35,8 @@ class RaspStateController(
         val savedRequest = raspStateRepository.save(
             RaspState(
                 dateTime = OffsetDateTime.now(ZoneOffset.of("+03:00")),
-                raspState = statePairs.toMap().toString().replace("{", "").replace("}", "").replace("=", ":")
+                raspState = statePairs.toMap().toString().replace("{", "").replace("}", "").replace("=", ":"),
+                isSecurityViolated = request.isSecurityViolated
             )
         )
 
@@ -44,12 +44,12 @@ class RaspStateController(
     }
 
     @GetMapping("/all_responses")
-    fun allRequests(): ResponseEntity<*> {
+    fun allResponse(): ResponseEntity<*> {
         return ResponseEntity.ok(raspStateRepository.findAll())
     }
 
     @GetMapping("/last_response")
-    fun lastRequest(): ResponseEntity<*> {
+    fun lastResponse(): ResponseEntity<*> {
         return ResponseEntity.ok(raspStateRepository.findTopByOrderByDateTimeDesc())
     }
 }

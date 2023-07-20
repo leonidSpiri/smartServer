@@ -15,5 +15,7 @@ data class RaspState(
     val dateTime: OffsetDateTime,
 
     @NotBlank
-    val raspState: String
+    val raspState: String,
+
+    val isSecurityViolated:Boolean = false
 )
