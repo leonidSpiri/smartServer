@@ -14,20 +14,20 @@ services:
       - internal_net
 
   db:
-    container_name: logger_db
+    container_name: db
     image: postgres:15.2-alpine
     restart: unless-stopped
     ports:
       - "5432:5432"
     env_file: .env
     volumes:
-      - db_logger_vol:/var/lib/postgresql/data/
+      - db_vol:/var/lib/postgresql/data/
       - ./dump:/docker-entrypoint-initdb.d
     networks:
       - internal_net
 
 volumes:
-  db_logger_vol: { }
+  db_vol: { }
 
 networks:
   internal_net:

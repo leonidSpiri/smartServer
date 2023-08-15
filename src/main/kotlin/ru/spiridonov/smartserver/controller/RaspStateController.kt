@@ -8,6 +8,7 @@ import ru.spiridonov.smartserver.payload.request.StateRequest
 import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.RaspDevicesRepository
 import ru.spiridonov.smartserver.repository.RaspStateRepository
+import ru.spiridonov.smartserver.repository.SecurityRepository
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -16,7 +17,8 @@ import java.time.ZoneOffset
 @RequestMapping("/api/rasp_state")
 class RaspStateController(
     val raspDevicesRepository: RaspDevicesRepository,
-    val raspStateRepository: RaspStateRepository
+    val raspStateRepository: RaspStateRepository,
+    val securityRepository: SecurityRepository
 ) {
     @PostMapping
     fun raspResponse(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
@@ -50,6 +52,9 @@ class RaspStateController(
 
     @GetMapping("/last_response")
     fun lastResponse(): ResponseEntity<*> {
-        return ResponseEntity.ok(raspStateRepository.findTopByOrderByDateTimeDesc())
+        val isSecurityTurnOn = securityRepository.findTopByOrderByDateTimeDesc()?.isSecurityTurnOn ?: true
+        val state = raspStateRepository.findTopByOrderByDateTimeDesc()
+        val newState = if (!isSecurityTurnOn) state?.copy(isSecurityViolated = false) else state
+        return ResponseEntity.ok(newState)
     }
 }
