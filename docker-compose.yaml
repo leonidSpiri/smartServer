@@ -1,15 +1,26 @@
-version: "3.9"
+version: "3.3"
 
 services:
   api:
     container_name: api
-    build: .
+    image: lspiridonov/smartserver-smart:latest
     ports:
       - "9888:8080"
     restart: unless-stopped
     env_file: .env
     depends_on:
       - db
+    networks:
+      - internal_net
+
+  rasp:
+    container_name: rasp
+    build: .
+    restart: unless-stopped
+    devices:
+      - /dev/gpiomem
+    depends_on:
+      - api
     networks:
       - internal_net
 
