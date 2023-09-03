@@ -49,7 +49,7 @@ class AuthController(
             .map { item -> item.authority }
             .collect(Collectors.toList())
 
-        val responseEntity = ResponseEntity.ok(
+        return ResponseEntity.ok(
             JwtResponse(
                 accessToken = jwtToken,
                 refreshToken = refreshToken,
@@ -59,7 +59,6 @@ class AuthController(
                 roles = roles
             )
         )
-        return ResponseEntity.ok(responseEntity)
     }
 
 
@@ -116,7 +115,7 @@ class AuthController(
 
         val refreshToken = refreshTokenService.createRefreshToken(savedUser.id!!).token
 
-        val responseEntity = ResponseEntity.ok(
+        return ResponseEntity.ok(
             JwtResponse(
                 accessToken = jwtToken,
                 refreshToken = refreshToken,
@@ -126,7 +125,6 @@ class AuthController(
                 roles = strListRoles
             )
         )
-        return ResponseEntity.ok(responseEntity)
     }
 
     @PostMapping("/refreshtoken")
