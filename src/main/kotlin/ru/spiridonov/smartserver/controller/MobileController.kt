@@ -46,9 +46,19 @@ class MobileController(
         return ResponseEntity.ok(savedRequest)
     }
 
+    //TODO filter by date
     @GetMapping("/all_requests")
     fun allRequests(): ResponseEntity<*> {
         return ResponseEntity.ok(mobileRepository.findAll())
+    }
+
+    @GetMapping("/required_temp")
+    fun getRequiredTemp(): ResponseEntity<*> {
+        val request = mobileRepository.findTopByOrderByDateTimeDesc()
+            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No requests found"))
+        val requiredTemp = request.newRequiredState.split(",").find { it.split(":")[0] == DevTypes.TEMP_SENSOR.toString() }
+            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No required temp found"))
+        return ResponseEntity.ok(requiredTemp.split(":")[1])
     }
 
     @GetMapping("/last_request")
