@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-web:6.1.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
