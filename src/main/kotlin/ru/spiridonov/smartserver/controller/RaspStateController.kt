@@ -22,7 +22,7 @@ class RaspStateController(
 ) {
     @PostMapping
     fun raspResponse(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
-       val statePairs = mutableListOf<Pair<String, String>>()
+        val statePairs = mutableListOf<Pair<String, String>>()
         request.newRequiredState.split(",").forEach { state ->
             val list = state.split(":").map { it.trim() }
             val devType = raspDevicesRepository.findByPinId(list[0].toInt())?.devType
@@ -46,12 +46,19 @@ class RaspStateController(
     }
 
     @GetMapping("/all_responses")
-    fun allResponse(): ResponseEntity<*> {
+    fun allResponse(): ResponseEntity<List<RaspState>> {
         return ResponseEntity.ok(raspStateRepository.findAll())
     }
 
+    @GetMapping("/all_responses/{date}")
+    fun allResponseByDate(@PathVariable date: String): ResponseEntity<List<RaspState>> {
+        val startDate = OffsetDateTime.parse("${date}T00:00:00Z")
+        val endDate = OffsetDateTime.parse("${date}T23:59:59Z")
+        return ResponseEntity.ok(raspStateRepository.findAllByDateTimeBetweenOrderByDateTimeAsc(startDate, endDate))
+    }
+
     @GetMapping("/last_response")
-    fun lastResponse(): ResponseEntity<*> {
+    fun lastResponse(): ResponseEntity<RaspState> {
         val isSecurityTurnOn = securityRepository.findTopByOrderByDateTimeDesc()?.isSecurityTurnOn ?: true
         val state = raspStateRepository.findTopByOrderByDateTimeDesc()
         val newState = if (!isSecurityTurnOn) state?.copy(isSecurityViolated = false) else state
