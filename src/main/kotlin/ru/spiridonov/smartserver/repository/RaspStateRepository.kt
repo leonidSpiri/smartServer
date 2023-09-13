@@ -8,4 +8,6 @@ interface RaspStateRepository : JpaRepository<RaspState, Long> {
     fun findTopByOrderByDateTimeDesc(): RaspState?
 
     fun findAllByDateTimeBetweenOrderByDateTimeAsc(from: OffsetDateTime, to: OffsetDateTime): List<RaspState>
+
+    fun findAllByIsSecurityViolatedTrueOrderByDateTimeDesc(): List<RaspState>
 }

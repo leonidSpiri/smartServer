@@ -68,6 +68,12 @@ class SecurityController(
                 return ResponseEntity.ok(savedState)
             }
 
+    @GetMapping("/violated_history")
+    fun getViolatedHistory(): ResponseEntity<List<RaspState>> {
+        val violatedHistory = raspStateRepository.findAllByIsSecurityViolatedTrueOrderByDateTimeDesc()
+        return ResponseEntity.ok(violatedHistory)
+    }
+
     @GetMapping("/get")
     fun getSecurity(): ResponseEntity<*> {
         val securityState = securityRepository.findTopByOrderByDateTimeDesc()
