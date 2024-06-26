@@ -12,5 +12,4 @@ ENTRYPOINT ["java","-jar","/app.jar"]
 
 
 #docker buildx create --use
-#docker buildx build --push --platform linux/arm64,linux/amd64 -t lspiridonov/loggingserver-logger:latest .
-#docker buildx build --push --platform linux/arm64 -t lspiridonov/loggingserver-logger:1.0.0 .
+#docker buildx build --push --platform linux/arm64 -t lspiridonov/smartserver-smart:latest .

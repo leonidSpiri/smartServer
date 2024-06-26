@@ -37,8 +37,23 @@ services:
     networks:
       - internal_net
 
+  mongo:
+    container_name: mongo
+    image: mongo:8.0-rc-jammy
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    env_file: .env
+    volumes:
+      - db_vol:/data/db
+      - ./initMongo.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    networks:
+      - internal_net
+
+
 volumes:
   db_vol: { }
+  mongo_vol: { }
 
 networks:
   internal_net:

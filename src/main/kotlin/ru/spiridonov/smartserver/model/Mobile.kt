@@ -19,5 +19,6 @@ data class Mobile(
     val user: User,
 
     @NotBlank
-    val newRequiredState: String
+    val newRequiredState: MobileRequirements
 )
+//ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/

@@ -9,6 +9,7 @@ import ru.spiridonov.smartserver.config.Config
 import ru.spiridonov.smartserver.model.Mobile
 import ru.spiridonov.smartserver.model.RaspDevices
 import ru.spiridonov.smartserver.model.enums.DevTypes
+import ru.spiridonov.smartserver.payload.request.MobileStateRequest
 import ru.spiridonov.smartserver.payload.request.StateRequest
 import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.MobileRepository
@@ -30,7 +31,7 @@ class MobileController(
 ) {
 
     @PostMapping
-    fun mobileRequest(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
+    fun mobileRequest(@Valid @RequestBody request: MobileStateRequest): ResponseEntity<*> {
         val userDetails = SecurityContextHolder.getContext().authentication.principal as UserDetailsImpl
         val user = userRepository.findByEmail(userDetails.getEmail())
             ?: return ResponseEntity.badRequest().body(MessageResponse(message = "User not found"))
@@ -70,7 +71,7 @@ class MobileController(
             ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No requests found"))
         request.newRequiredState.split(",").forEach { state ->
             val list = state.split(":").map { it.trim() }
-            DevTypes.values().forEach { devType ->
+            DevTypes.entries.forEach { devType ->
                 if (devType.name == list[0]) {
                     val raspDev = raspDevicesRepository.findByDevType(devType)
                     if (raspDev != null) {
