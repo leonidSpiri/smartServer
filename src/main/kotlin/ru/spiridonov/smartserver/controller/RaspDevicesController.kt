@@ -19,7 +19,7 @@ class RaspDevicesController(
 
     @PostMapping
     fun addRaspDevice(@Valid @RequestBody request: RaspDeviceRequest): ResponseEntity<*> {
-        val devType = DevTypes.values().find { it.name == request.devType }
+        val devType = DevTypes.entries.find { it.name == request.devType }
             ?: return ResponseEntity.badRequest().body("Device type ${request.devType} not found")
 
         val raspDev = RaspDevices(

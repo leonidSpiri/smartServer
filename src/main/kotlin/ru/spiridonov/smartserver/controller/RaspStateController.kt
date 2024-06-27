@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ru.spiridonov.smartserver.model.RaspState
+import ru.spiridonov.smartserver.model.enums.DevTypes
 import ru.spiridonov.smartserver.payload.request.StateRequest
 import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.RaspDevicesRepository
@@ -22,22 +23,34 @@ class RaspStateController(
 ) {
     @PostMapping
     fun raspResponse(@Valid @RequestBody request: StateRequest): ResponseEntity<*> {
-        val statePairs = mutableListOf<Pair<String, String>>()
+        var fanWorks = false
+        var conditionerWorks = false
+        var tempSensor = 0
+        var boxTempSensor = 0
+
         request.newRequiredState.split(",").forEach { state ->
             val list = state.split(":").map { it.trim() }
             val devType = raspDevicesRepository.findByPinId(list[0].toInt())?.devType
                 ?: return ResponseEntity.badRequest()
                     .body(MessageResponse(message = "Device with pin ${list[0]} not found"))
-            statePairs.add(Pair(devType.name, list[1]))
+            when (devType) {
+                DevTypes.FAN -> fanWorks = list[1].toBoolean()
+                DevTypes.CONDITIONER -> conditionerWorks = list[1].toBoolean()
+                DevTypes.TEMP_SENSOR -> tempSensor = list[1].toInt()
+                DevTypes.BOX_TEMP_SENSOR -> boxTempSensor = list[1].toInt()
+                DevTypes.LIGHT -> TODO()
+                DevTypes.TEMP_HUMIDITY_SENSOR -> TODO()
+                DevTypes.SECURITY_SENSOR -> TODO()
+            }
         }
-        if (statePairs.isEmpty())
-            return ResponseEntity.badRequest()
-                .body(MessageResponse(message = "No devices found"))
 
         val savedRequest = raspStateRepository.save(
             RaspState(
                 dateTime = OffsetDateTime.now(ZoneOffset.of("+03:00")),
-                raspState = statePairs.toMap().toString().replace("{", "").replace("}", "").replace("=", ":"),
+                fanWorks = fanWorks,
+                conditionerWorks = conditionerWorks,
+                tempSensor = tempSensor,
+                boxTempSensor = boxTempSensor,
                 isSecurityViolated = request.isSecurityViolated
             )
         )

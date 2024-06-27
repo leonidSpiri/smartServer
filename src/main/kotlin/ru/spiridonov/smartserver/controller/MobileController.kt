@@ -1,24 +1,20 @@
 package ru.spiridonov.smartserver.controller
 
 import jakarta.validation.Valid
-import org.apache.commons.lang3.tuple.MutablePair
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import ru.spiridonov.smartserver.config.Config
 import ru.spiridonov.smartserver.model.Mobile
-import ru.spiridonov.smartserver.model.RaspDevices
 import ru.spiridonov.smartserver.model.enums.DevTypes
 import ru.spiridonov.smartserver.payload.request.MobileStateRequest
-import ru.spiridonov.smartserver.payload.request.StateRequest
 import ru.spiridonov.smartserver.payload.response.MessageResponse
 import ru.spiridonov.smartserver.repository.MobileRepository
 import ru.spiridonov.smartserver.repository.RaspDevicesRepository
 import ru.spiridonov.smartserver.repository.RaspStateRepository
 import ru.spiridonov.smartserver.repository.UserRepository
 import ru.spiridonov.smartserver.service.UserDetailsImpl
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.util.*
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
@@ -38,8 +34,9 @@ class MobileController(
 
         val savedRequest = mobileRepository.save(
             Mobile(
-                dateTime = OffsetDateTime.now(ZoneOffset.of("+03:00")),
-                user = user,
+                dateTime = Date(Date().time + 3 * 60 * 60 * 1000),
+                userId = user.id ?: return ResponseEntity.badRequest()
+                    .body(MessageResponse(message = "User not found")),
                 newRequiredState = request.newRequiredState
             )
         )
@@ -57,87 +54,45 @@ class MobileController(
     fun getRequiredTemp(): ResponseEntity<*> {
         val request = mobileRepository.findTopByOrderByDateTimeDesc()
             ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No requests found"))
-        val requiredTemp = request.newRequiredState.split(",").find { it.split(":")[0] == DevTypes.TEMP_SENSOR.toString() }
-            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No required temp found"))
-        return ResponseEntity.ok(requiredTemp.split(":")[1])
+        return ResponseEntity.ok(request.newRequiredState.tempSensor)
     }
 
     @GetMapping("/last_request")
     fun lastRequest(): ResponseEntity<*> {
-        var needTemp = 0
-        var realTemp = 0
-        val statePairs = mutableListOf<MutablePair<RaspDevices, String>>()
         val request = mobileRepository.findTopByOrderByDateTimeDesc()
-            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No requests found"))
-        request.newRequiredState.split(",").forEach { state ->
-            val list = state.split(":").map { it.trim() }
-            DevTypes.entries.forEach { devType ->
-                if (devType.name == list[0]) {
-                    val raspDev = raspDevicesRepository.findByDevType(devType)
-                    if (raspDev != null) {
-                        statePairs.add(MutablePair(raspDev, list[1]))
-                        if (raspDev.devType == DevTypes.TEMP_SENSOR)
-                            needTemp = list[1].toInt()
-                    } else
-                        return ResponseEntity.badRequest()
-                            .body(MessageResponse(message = "Device ${devType.name} not found"))
-                }
-            }
-        }
-        if (statePairs.isEmpty())
-            return ResponseEntity.badRequest()
-                .body(MessageResponse(message = "No devices found"))
+            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No mobile state requests found"))
+        val prevState = raspStateRepository.findTopByOrderByDateTimeDesc()
+            ?: return ResponseEntity.badRequest().body(MessageResponse(message = "No rasp state requests found"))
 
-        val prevState = raspStateRepository.findTopByOrderByDateTimeDesc()?.raspState?.split(", ")
+        val needTemp = request.newRequiredState.tempSensor
+        val realTemp = prevState.tempSensor
 
+        var newFanState = false
+        var newCondState = false
 
-        prevState?.find { it.split(":")[0] == DevTypes.TEMP_SENSOR.toString() }?.let { prevTemp ->
-            realTemp = prevTemp.split(":")[1].toInt()
-        }
-        var isCondWork = false
-        statePairs.find { it.left.devType == DevTypes.CONDITIONER }?.let { cond ->
-            prevState?.find { it.split(":")[0] == DevTypes.CONDITIONER.toString() }?.let { prevCond ->
-                val isTurnOn = prevCond.split(":")[1].toBoolean()
-                if (!cond.right.toBoolean()) {
-                    cond.right = isTurnOn.toString()
-                    if (realTemp <= (Config.turnOffCondDelta + needTemp))
-                        cond.right = false.toString()
-                    else if (realTemp >= (Config.turnOnCondDelta + needTemp)) {
-                        cond.right = true.toString()
-                        isCondWork = true
-                    }
-                }
-            }
+        if (request.newRequiredState.conditioner)
+            newCondState = true
+        else if (request.newRequiredState.fan)
+            newFanState = true
+        else {
+            if (realTemp > needTemp)
+                newFanState = true
+            if (realTemp >= (Config.COND_DELTA + needTemp))
+                newCondState = true
+
+            if (prevState.fanWorks && realTemp >= (needTemp - Config.FAN_DELTA))
+                newFanState = true
+
+            if (prevState.conditionerWorks && realTemp >= (needTemp - Config.COND_DELTA))
+                newCondState = true
         }
 
-        statePairs.find { it.left.devType == DevTypes.FAN }?.let { fan ->
-            prevState?.find { it.split(":")[0] == DevTypes.FAN.toString() }?.let { prevFan ->
-                val isTurnOn = prevFan.split(":")[1].toBoolean()
-                if (!fan.right.toBoolean()) {
-                    if (isCondWork)
-                        fan.right = false.toString()
-                    else {
-                        fan.right = isTurnOn.toString()
-                        if (realTemp <= (Config.turnOffFanDelta + needTemp))
-                            fan.right = false.toString()
-                        else if (realTemp >= (Config.turnOnFanDelta + needTemp)) {
-                            fan.right = true.toString()
-                            statePairs.find { it.left.devType == DevTypes.CONDITIONER }?.let { cond ->
-                                cond.right = false.toString()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        var finalState = ""
-        statePairs.forEach { pair ->
-            if (pair.left.devType == DevTypes.FAN
-                || pair.left.devType == DevTypes.CONDITIONER
-            )
-                finalState += "${pair.left.pinId}:${pair.right}, "
-        }
-        finalState = finalState.dropLast(2)
+        if (newCondState) newFanState = true
+
+        val fanPinId = raspDevicesRepository.findByDevType(DevTypes.FAN)?.pinId
+        val condPinId = raspDevicesRepository.findByDevType(DevTypes.CONDITIONER)?.pinId
+        val finalState = "$fanPinId:$newFanState, $condPinId:$newCondState"
+
         return ResponseEntity.ok(finalState)
     }
 }

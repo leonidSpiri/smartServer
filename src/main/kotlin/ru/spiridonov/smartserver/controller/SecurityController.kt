@@ -61,7 +61,10 @@ class SecurityController(
                 else raspStateRepository.save(
                     RaspState(
                         dateTime = OffsetDateTime.now(ZoneOffset.of("+03:00")),
-                        raspState = "",
+                        fanWorks = false,
+                        conditionerWorks = false,
+                        tempSensor = 0,
+                        boxTempSensor = 0,
                         isSecurityViolated = true
                     )
                 )

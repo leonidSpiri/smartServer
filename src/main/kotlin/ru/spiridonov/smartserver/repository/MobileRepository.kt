@@ -1,8 +1,9 @@
 package ru.spiridonov.smartserver.repository
 
-import org.springframework.data.jpa.repository.JpaRepository
+import org.bson.types.ObjectId
+import org.springframework.data.mongodb.repository.MongoRepository
 import ru.spiridonov.smartserver.model.Mobile
 
-interface MobileRepository : JpaRepository<Mobile, Long> {
+interface MobileRepository : MongoRepository<Mobile, ObjectId> {
     fun findTopByOrderByDateTimeDesc(): Mobile?
 }

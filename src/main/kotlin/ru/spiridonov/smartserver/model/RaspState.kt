@@ -15,7 +15,16 @@ data class RaspState(
     val dateTime: OffsetDateTime,
 
     @NotBlank
-    val raspState: String,
+    val fanWorks: Boolean,
 
-    val isSecurityViolated:Boolean = false
+    @NotBlank
+    val conditionerWorks: Boolean,
+
+    @NotBlank
+    val tempSensor: Int,
+
+    @NotBlank
+    val boxTempSensor: Int,
+
+    val isSecurityViolated: Boolean = false
 )
