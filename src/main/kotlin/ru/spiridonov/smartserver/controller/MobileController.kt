@@ -80,11 +80,12 @@ class MobileController(
             if (realTemp >= (Config.COND_DELTA + needTemp))
                 newCondState = true
 
-            if (prevState.fanWorks && realTemp >= (needTemp - Config.FAN_DELTA))
-                newFanState = true
-
             if (prevState.conditionerWorks && realTemp >= (needTemp - Config.COND_DELTA))
                 newCondState = true
+            else if (prevState.fanWorks && realTemp >= (needTemp - Config.FAN_DELTA))
+                newFanState = true
+
+
         }
 
         if (newCondState) newFanState = true
