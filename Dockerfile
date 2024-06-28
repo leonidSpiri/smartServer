@@ -13,3 +13,4 @@ ENTRYPOINT ["java","-jar","/app.jar"]
 
 #docker buildx create --use
 #docker buildx build --push --platform linux/arm64 -t lspiridonov/smartserver-smart:latest .
+#docker build --push -t lspiridonov/smartserver-smart:latest .

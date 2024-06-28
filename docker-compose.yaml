@@ -5,11 +5,12 @@ services:
     container_name: api
     image: lspiridonov/smartserver-smart:latest
     ports:
-      - "9888:8080"
+      - "9888:9888"
     restart: unless-stopped
     env_file: .env
     depends_on:
       - db
+      - mongo
     networks:
       - internal_net
 
@@ -33,7 +34,6 @@ services:
     env_file: .env
     volumes:
       - db_vol:/var/lib/postgresql/data/
-      - ./dump:/docker-entrypoint-initdb.d
     networks:
       - internal_net
 
@@ -47,8 +47,7 @@ services:
     env_file: .env
     volumes:
       - ./mongo-entrypoint:/docker-entrypoint-initdb.d
-      - db_vol:/data/db
-      - mongoconfig:/data/configdb
+      - mongo_vol:/data/db
     networks:
       - internal_net
 
@@ -56,7 +55,6 @@ services:
 volumes:
   db_vol: { }
   mongo_vol: { }
-  mongoconfig: { }
 
 networks:
   internal_net:
