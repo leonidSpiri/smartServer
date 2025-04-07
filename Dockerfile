@@ -1,16 +1,19 @@
-FROM gradle:jdk17-alpine as builder
-USER root
-WORKDIR /builder
-ADD . /builder
-RUN gradle build --stacktrace
+# Стадия сборки
+FROM gradle:8.5-jdk17 AS builder
+WORKDIR /home/gradle/project
 
-FROM openjdk:17.0.2-jdk-slim-buster
-ARG JAR_FILE=./build/libs/*.jar
-COPY ${JAR_FILE} app.jar
-EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Копируем все исходники и скрипты
+COPY --chown=gradle:gradle . .
 
+# Собираем приложение
+RUN gradle clean build --no-daemon
 
-#docker buildx create --use
-#docker buildx build --push --platform linux/arm64 -t lspiridonov/smartserver-smart:latest .
-#docker build --push -t lspiridonov/smartserver-smart:latest .
+# Стадия рантайма
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+
+# Копируем готовый JAR из предыдущего контейнера
+COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
+
+# Запускаем приложение
+ENTRYPOINT ["java", "-jar", "app.jar"]
