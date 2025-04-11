@@ -3,7 +3,7 @@ version: "3.3"
 services:
   api:
     container_name: api
-    image: lspiridonov/smartserver-smart:latest
+    image: nexus.protesys.ru:5000/smartserver:latest
     ports:
       - "9888:9888"
     restart: unless-stopped
