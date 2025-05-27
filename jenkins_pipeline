@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "nexus.protesys.ru:5000/smartserver"
+        IMAGE_TAG = "latest"
+        DOCKER_CREDENTIALS_ID = "nexus-docker-creds"
+        DEPLOY_HOST = "192.168.18.27"
+        SSH_KEY_PATH = "/home/ssh_keys/protvino_climat-control"
+        DEPLOY_DIR = "/root/smartServer"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scmGit(branches: [[name: 'master']],
+                    userRemoteConfigs: [[url: 'https://gitlab.protesys.ru/root/smartserver.git']])
+            }
+        }
+
+        stage('Build and Push Docker') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                withDockerRegistry([credentialsId: DOCKER_CREDENTIALS_ID, url: "https://nexus.protesys.ru:5000"]) {
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                sh """
+                ssh -i ${SSH_KEY_PATH} root@${DEPLOY_HOST} << 'EOF'
+                  cd ${DEPLOY_DIR}
+                    docker compose stop api
+                    docker compose rm -f api || true
+                    docker compose pull api
+                    docker compose up -d api
+                """
+            }
+        }
+    }
+}
